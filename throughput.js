@@ -4,7 +4,7 @@ import through from 'through2'
 function throughput ({
   interval,
   label,
-  stdout
+  out
 }) {
   let count = 0
   let lastCount = 0
@@ -20,16 +20,16 @@ function throughput ({
 
       const str = `[${label}] count: ${count} (${(count - lastCount)}${timeUnit})`
       lastCount = count
-      cursorTo(stdout, 0)
-      stdout.write(str)
-      clearLine(stdout, 1)
+      cursorTo(out, 0)
+      out.write(str)
+      clearLine(out, 1)
     }
     setTimeout(update, interval)
   }
 
   const push = function (chunk, encoding, callback) {
     if (!started) {
-      stdout.write(`[${label}][start] ${new Date()}\n`)
+      out.write(`[${label}][start] ${new Date()}\n`)
       started = true
       update()
     }
@@ -43,12 +43,12 @@ function throughput ({
 function factory ({
   interval = 1000,
   label = 'throughput',
-  stdout = process.stdout
+  out = process.stdout
 }) {
   return throughput({
     interval,
     label,
-    stdout
+    out
   })
 }
 

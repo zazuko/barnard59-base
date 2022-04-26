@@ -18,30 +18,12 @@ describe('throughput', () => {
   it('should pipe elements on objectMode true', async () => {
     const s = throughput({
       interval: 1,
-      stdout: { write () {} }
+      out: { write () {} }
     })
-    const stream = new Readable({
-      objectMode: true,
-      read: () => {}
-    })
-    stream.pipe(s)
-    stream.push('a')
-    stream.push(null)
-    strictEqual((await array(s)).length, 1)
-  })
-
-  it('should pipe elements on objectMode false', async () => {
-    const s = throughput({
-      interval: 1,
-      stdout: { write () {} }
-    })
-    const stream = new Readable({
-      objectMode: false,
-      read: () => {}
+    const stream = Readable.from(['a', 'b'], {
+      objectMode: true
     })
     stream.pipe(s)
-    stream.push('a')
-    stream.push(null)
-    strictEqual((await array(s)).length, 1)
+    strictEqual((await array(s)).length, 2)
   })
 })

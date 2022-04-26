@@ -4,13 +4,13 @@ import through from 'through2'
 function size ({
   interval,
   label,
-  stdout
+  out
 }) {
   let bytes = 0
   let lastBytes = 0
   let started = false
 
-  const update = () => {
+  function update () {
     if (bytes) {
       if (lastBytes === bytes) {
         return
@@ -38,36 +38,42 @@ function size ({
 
       lastBytes = bytes
 
-      cursorTo(stdout, 0)
-      stdout.write(str)
-      clearLine(stdout, 1)
+      cursorTo(out, 0)
+      out.write(str)
+      clearLine(out, 1)
     }
 
     setTimeout(update, interval)
   }
 
-  return through.obj(function (chunk, encoding, callback) {
+  const push = function (chunk, encoding, callback) {
+    if (!chunk.length) {
+      throw new Error(`cannot determine the size of an instance of ${chunk?.constructor?.name}`)
+    }
+
+    bytes += chunk.length
+
     if (!started) {
-      stdout.write(`[${label}][start] ${new Date()}\n`)
+      out.write(`[${label}][start] ${new Date()}\n`)
       started = true
       update()
     }
 
     this.push(chunk)
-    bytes += chunk.length
     callback()
-  })
+  }
+  return through.obj(push)
 }
 
 function factory ({
   interval = 1000,
   label = 'size',
-  stdout = process.stdout
+  out = process.stdout
 }) {
   return size({
     interval,
     label,
-    stdout
+    out
   })
 }
 

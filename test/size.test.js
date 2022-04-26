@@ -15,33 +15,29 @@ describe('size', () => {
     strictEqual(isDuplex(s), true)
   })
 
-  it('should pipe object Mode = true', async () => {
-    const s = size({
-      interval: 1,
-      stdout: { write () {} }
-    })
-    const stream = new Readable({
-      objectMode: true,
-      read: () => {}
-    })
-    stream.pipe(s)
-    stream.push('A very long string?')
-    stream.push(null)
-    strictEqual((await array(s)).length, 1)
-  })
-
   it('should pipe object Mode = false', async () => {
     const s = size({
       interval: 1,
-      stdout: { write () {} }
+      out: { write () {} }
     })
-    const stream = new Readable({
-      objectMode: false,
-      read: () => {}
+
+    const stream = Readable.from(['a', 'b'], {
+      objectMode: false
     })
     stream.pipe(s)
-    stream.push('A very long string?')
-    stream.push(null)
-    strictEqual((await array(s)).length, 1)
+    strictEqual((await array(s)).length, 2)
+  })
+
+  it('should pipe object Mode = true', async () => {
+    const s = size({
+      interval: 2,
+      out: { write () {} }
+    })
+
+    const stream = Readable.from(['a', 'b'], {
+      objectMode: true
+    })
+    stream.pipe(s)
+    strictEqual((await array(s)).length, 2)
   })
 })
