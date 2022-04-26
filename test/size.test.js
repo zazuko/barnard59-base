@@ -3,57 +3,44 @@ import { array } from 'get-stream'
 import { isDuplex } from 'isstream'
 import { describe, it } from 'mocha'
 import { Readable } from 'readable-stream'
-import { log, logObject } from '../monitor.js'
+import size from '../size.js'
 
-describe('log', () => {
+describe('size', () => {
   it('should be a function', () => {
-    strictEqual(typeof log, 'function')
+    strictEqual(typeof size, 'function')
   })
 
   it('should return a duplex', () => {
-    const s = log({})
+    const s = size({})
     strictEqual(isDuplex(s), true)
   })
 
-  it('should pipe objectMode false', async () => {
-    const s = log({
-      objectMode: false,
+  it('should pipe object Mode = true', async () => {
+    const s = size({
       interval: 1,
       stdout: { write () {} }
     })
     const stream = new Readable({
-      objectMode: false,
+      objectMode: true,
       read: () => {}
     })
     stream.pipe(s)
-    stream.push('a')
+    stream.push('A very long string?')
     stream.push(null)
     strictEqual((await array(s)).length, 1)
   })
-})
 
-describe('logObject', () => {
-  it('should be a function', () => {
-    strictEqual(typeof logObject, 'function')
-  })
-
-  it('should return a duplex', () => {
-    const s = logObject({})
-    strictEqual(isDuplex(s), true)
-  })
-
-  it('should pipe objectMode true', async () => {
-    const s = logObject({
-      objectMode: true,
+  it('should pipe object Mode = false', async () => {
+    const s = size({
       interval: 1,
       stdout: { write () {} }
     })
     const stream = new Readable({
-      objectMode: true,
+      objectMode: false,
       read: () => {}
     })
     stream.pipe(s)
-    stream.push({})
+    stream.push('A very long string?')
     stream.push(null)
     strictEqual((await array(s)).length, 1)
   })

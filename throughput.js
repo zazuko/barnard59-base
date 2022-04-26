@@ -1,9 +1,8 @@
 import { cursorTo, clearLine } from 'readline'
 import through from 'through2'
 
-function logInterval ({
+function throughput ({
   interval,
-  objectMode,
   label,
   stdout
 }) {
@@ -30,7 +29,7 @@ function logInterval ({
 
   const push = function (chunk, encoding, callback) {
     if (!started) {
-      stdout.write(`[${label}] first at: ${new Date()}\n`)
+      stdout.write(`[${label}][start] ${new Date()}\n`)
       started = true
       update()
     }
@@ -38,33 +37,19 @@ function logInterval ({
     count++
     callback()
   }
-  return objectMode ? through.obj(push) : through(push)
+  return through.obj(push)
 }
 
-function log ({
+function factory ({
   interval = 1000,
-  label = 'log',
+  label = 'throughput',
   stdout = process.stdout
 }) {
-  return logInterval({
+  return throughput({
     interval,
-    objectMode: false,
     label,
     stdout
   })
 }
 
-function logObject ({
-  interval = 1000,
-  label = 'logObject',
-  stdout = process.stdout
-}) {
-  return logInterval({
-    interval,
-    objectMode: true,
-    label,
-    stdout
-  })
-}
-
-export { log, logObject }
+export default factory
