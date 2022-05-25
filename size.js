@@ -1,5 +1,5 @@
 import { cursorTo, clearLine } from 'readline'
-import through from 'through2'
+import { PassThrough } from 'stream'
 
 function size ({
   interval,
@@ -46,23 +46,29 @@ function size ({
     setTimeout(update, interval)
   }
 
-  const push = function (chunk, encoding, callback) {
-    if (!chunk.length) {
-      throw new Error(`cannot determine the size of an instance of ${chunk?.constructor?.name}`)
+  return new PassThrough({
+    objectMode: false,
+    write (chunk, encoding, callback) {
+      if (!chunk.length) {
+        throw new Error(`cannot determine the size of an instance of ${chunk?.constructor?.name}`)
+      }
+
+      bytes += chunk.length
+
+      if (!started) {
+        out.write(`[${label}][start] ${new Date()}\n`)
+        started = true
+        update()
+      }
+
+      this.push(chunk)
+      callback()
+    },
+    flush (callback) {
+      out.write(`[${label}][end] ${new Date()}\n`)
+      callback()
     }
-
-    bytes += chunk.length
-
-    if (!started) {
-      out.write(`[${label}][start] ${new Date()}\n`)
-      started = true
-      update()
-    }
-
-    this.push(chunk)
-    callback()
-  }
-  return through.obj(push)
+  })
 }
 
 function factory ({

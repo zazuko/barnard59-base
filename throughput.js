@@ -1,5 +1,5 @@
 import { cursorTo, clearLine } from 'readline'
-import through from 'through2'
+import { PassThrough } from 'stream'
 
 function throughput ({
   interval,
@@ -17,7 +17,6 @@ function throughput ({
       if (lastCount === count) {
         return
       }
-
       const str = `[${label}] count: ${count} (${(count - lastCount)}${timeUnit})`
       lastCount = count
       cursorTo(out, 0)
@@ -27,17 +26,24 @@ function throughput ({
     setTimeout(update, interval)
   }
 
-  const push = function (chunk, encoding, callback) {
-    if (!started) {
-      out.write(`[${label}][start] ${new Date()}\n`)
-      started = true
-      update()
+  return new PassThrough({
+    objectMode: true,
+    write (chunk, encoding, callback) {
+      if (!started) {
+        out.write(`[${label}][start] ${new Date()}\n`)
+        started = true
+        update()
+      }
+      this.push(chunk)
+      count++
+      callback()
+    },
+    flush (callback) {
+      out.write(`[${label}][total] ${count} chunks\n`)
+      out.write(`[${label}][end] ${new Date()}\n`)
+      callback()
     }
-    this.push(chunk)
-    count++
-    callback()
-  }
-  return through.obj(push)
+  })
 }
 
 function factory ({
