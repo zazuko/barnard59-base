@@ -1,10 +1,13 @@
-import through from 'through2'
+import { PassThrough } from 'stream'
 
 function count () {
-  const t = through.obj(function (chunk, encoding, callback) {
-    this.push(chunk)
-    t.count++
-    callback()
+  const t = new PassThrough({
+    objectMode: true,
+    write (chunk, encoding, callback) {
+      this.push(chunk)
+      t.count++
+      callback()
+    }
   })
 
   t.count = 0
