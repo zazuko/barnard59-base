@@ -1,16 +1,20 @@
-import { obj } from 'through2'
+import { PassThrough } from 'stream'
 
 function map (func) {
   const context = this
-  return obj(function (chunk, encoding, callback) {
-    Promise.resolve()
-      .then(() => {
-        return func.call(context, chunk, encoding)
-      }).then(result => {
-        this.push(result)
 
-        callback()
-      }).catch(callback)
+  return new PassThrough({
+    objectMode: true,
+    write (chunk, encoding, callback) {
+      Promise.resolve()
+        .then(() => {
+          return func.call(context, chunk, encoding)
+        }).then(result => {
+          this.push(result)
+
+          callback()
+        }).catch(callback)
+    }
   })
 }
 
