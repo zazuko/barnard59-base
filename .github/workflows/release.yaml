@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - "pre*"
+      - prerelease
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
